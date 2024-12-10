@@ -3,12 +3,14 @@ import img from "../../assets/login/login.svg";
 
 import { useState } from "react";
 import useAuth from "../../Hook/useAuth";
+import useAxiosPublic from "../../Hook/useAxiosPublic";
 
 const SignUp = () => {
   //const { createUser, upload, UpdateUser, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [photo, setphoto] = useState(null);
   const [username, setUsername] = useState("");
+  const AxiosPublic = useAxiosPublic();
 
   const handleChangePhoto = (e) => {
     if (e.target.files[0]) {
@@ -30,6 +32,23 @@ const SignUp = () => {
 
     const result = await createUser(email, password);
     console.log(result.user);
+    if (result.user) {
+      const userInfo = {
+        name: username,
+        email: email,
+        role: "driver",
+      };
+      AxiosPublic.post("/users", userInfo)
+        .then((res) => {
+          console.log(res.data);
+          if (res.data.insertedId) {
+            alert("user inserted database");
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+        });
+    }
   };
 
   return (

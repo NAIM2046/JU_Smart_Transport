@@ -22,6 +22,10 @@ import BusSchedule from "../Pages/BusShedule/BusShedule";
 import ScheduleManage from "../Layout/Admin/SheduleManage/SheduleManage";
 import RuningDriverList from "../Layout/Student/Leftpage/RuningDriverList";
 import RuningDriverMap from "../Layout/Student/Rightpage/RuningDriverMap";
+import PrivateRoutes from "./PrivateRoutes";
+import StudentRoutes from "./StudentRoutes";
+import DriverRoutes from "./DriverRoutes";
+import AdminRoutes from "./AdminRoutes";
 
 const router = createBrowserRouter([
   {
@@ -38,7 +42,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/student",
-    element: <Student></Student>,
+    element: (
+      <StudentRoutes>
+        <Student></Student>
+      </StudentRoutes>
+    ),
     children: [
       {
         path: "/student",
@@ -52,7 +60,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/driver",
-    element: <Driver></Driver>,
+    element: (
+      <DriverRoutes>
+        <Driver></Driver>
+      </DriverRoutes>
+    ),
   },
   {
     path: "/mapcontiner",
@@ -60,27 +72,51 @@ const router = createBrowserRouter([
   },
   {
     path: "/profile",
-    element: <ProfilePage></ProfilePage>,
+    element: (
+      <PrivateRoutes>
+        <ProfilePage></ProfilePage>
+      </PrivateRoutes>
+    ),
   },
   {
     path: "/buslist",
-    element: <BusList></BusList>,
+    element: (
+      <PrivateRoutes>
+        <BusList></BusList>
+      </PrivateRoutes>
+    ),
   },
   {
     path: "/driverlist",
-    element: <DriverList></DriverList>,
+    element: (
+      <PrivateRoutes>
+        <DriverList></DriverList>
+      </PrivateRoutes>
+    ),
   },
   {
     path: "/notice",
-    element: <NoticePage></NoticePage>,
+    element: (
+      <PrivateRoutes>
+        <NoticePage></NoticePage>
+      </PrivateRoutes>
+    ),
   },
   {
     path: "/busshedule",
-    element: <BusSchedule></BusSchedule>,
+    element: (
+      <PrivateRoutes>
+        <BusSchedule></BusSchedule>
+      </PrivateRoutes>
+    ),
   },
   {
     path: "/admin",
-    element: <Admin></Admin>,
+    element: (
+      <AdminRoutes>
+        <Admin></Admin>
+      </AdminRoutes>
+    ),
     children: [
       {
         path: "/admin",

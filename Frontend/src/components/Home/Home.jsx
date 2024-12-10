@@ -1,16 +1,18 @@
 import React, { useEffect } from "react";
 import useAuth from "../../Hook/useAuth";
 import { useNavigate } from "react-router-dom";
+import userRole from "../../Hook/userRole";
 
 const Home = () => {
   const { user, loading, LogOut } = useAuth();
   const navigate = useNavigate();
-  const role = "student";
+  const [Role, isRole] = userRole();
+
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !isRole) {
       if (user) {
-        // Assuming user role is stored in `user.role`
-        switch (role) {
+        // Navigate based on the user's role
+        switch (Role) {
           case "student":
             navigate("/student");
             break;
@@ -21,32 +23,35 @@ const Home = () => {
             navigate("/admin");
             break;
           default:
-            navigate("/login"); // Fallback for undefined role
+            navigate("/login"); // Fallback if the role is undefined
             break;
         }
       } else {
         navigate("/login"); // Navigate to login if no user
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, Role, isRole, navigate]);
+
+  const handleLogout = async () => {
+    await LogOut(); // Log out the user
+    navigate("/login", { replace: true }); // Redirect to login page
+  };
+
+  // If loading or fetching the role, show a loader
+  if (loading || isRole) {
+    return <p>Loading...</p>;
+  }
+
+  // If the user is null, navigate to login and stop rendering the component
+  if (!user) {
+    navigate("/login", { replace: true });
+    return null;
+  }
 
   return (
     <div>
-      {user ? (
-        <div>
-          <h3>Welcome, {role}</h3>
-          <button
-            onClick={async () => {
-              await LogOut();
-              navigate("/login"); // Redirect to login after logout
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
+      <h3>Welcome, {Role}</h3>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
 };

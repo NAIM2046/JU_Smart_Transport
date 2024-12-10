@@ -1,10 +1,17 @@
 import React, { useState } from "react";
 import { MdOutlineMenu } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../../Hook/useAuth";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const { LogOut } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    LogOut().then((res) => {
+      navigate("/");
+    });
+  };
   return (
     <nav className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-4 shadow-md">
       <div className="container mx-auto flex items-center justify-between">
@@ -65,6 +72,7 @@ const Navbar = () => {
           >
             Profile
           </Link>
+          <button onClick={handleLogout}>logOut</button>
         </div>
       </div>
     </nav>
