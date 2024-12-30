@@ -9,7 +9,7 @@ import MapCotiner from "../Layout/Driver/MapCotiner";
 import DashboardSummary from "../Layout/Admin/DashboardSummary";
 import StudentManage from "../Layout/Admin/StudentManage/StudentManage";
 import DriverMange from "../Layout/Admin/DriverMange/DriverMange";
-import AddUser from "../Layout/Admin/AddUser/AddUser";
+import AddUser from "../Layout/Admin/AddAll/AddUser";
 import AllUser from "../Layout/Admin/AllUser/AllUser";
 import NoticeManage from "../Layout/Admin/Notice/NoticeManage";
 import RouteManage from "../Layout/Admin/RouteManage/RouteManage";
@@ -26,6 +26,12 @@ import PrivateRoutes from "./PrivateRoutes";
 import StudentRoutes from "./StudentRoutes";
 import DriverRoutes from "./DriverRoutes";
 import AdminRoutes from "./AdminRoutes";
+import AddAll from "../Layout/Admin/AddAll/AddAll";
+import AddStudent from "../Layout/Admin/AddAll/AddStudent";
+import AddTeacher from "../Layout/Admin/AddAll/AddTeacher";
+import AddDriver from "../Layout/Admin/AddAll/AddDriver";
+import AddBus from "../Layout/Admin/AddAll/AddBus";
+import AddRoute from "../Layout/Admin/AddAll/AddRoute";
 
 const router = createBrowserRouter([
   {
@@ -49,7 +55,7 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/student",
+        path: "",
         element: <RuningDriverList></RuningDriverList>,
       },
       {
@@ -131,8 +137,28 @@ const router = createBrowserRouter([
         element: <DriverMange></DriverMange>,
       },
       {
-        path: "adduser",
-        element: <AddUser></AddUser>,
+        path: "addall",
+        element: <AddAll></AddAll>,
+      },
+      {
+        path: "add-student",
+        element: <AddStudent></AddStudent>,
+      },
+      {
+        path: "add-teacher",
+        element: <AddTeacher></AddTeacher>,
+      },
+      {
+        path: "add-driver",
+        element: <AddDriver></AddDriver>,
+      },
+      {
+        path: "add-bus",
+        element: <AddBus></AddBus>,
+      },
+      {
+        path: "add-route",
+        element: <AddRoute></AddRoute>,
       },
       {
         path: "users",

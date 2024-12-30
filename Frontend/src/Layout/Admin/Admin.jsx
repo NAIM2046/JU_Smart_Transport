@@ -66,9 +66,9 @@ const Admin = () => {
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/admin/adduser">
+                  <NavLink to="/admin/addall">
                     <IoPersonAdd />
-                    Add User
+                    Add All
                   </NavLink>
                 </li>
                 <li>

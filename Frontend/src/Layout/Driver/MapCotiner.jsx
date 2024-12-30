@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
+import io from "socket.io-client";
 import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../Hook/useAuth";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
 
 // Default marker icon fix for Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,24 +16,38 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+const socket = io("http://localhost:5000");
+
 const MapContainer = () => {
   const navigate = useNavigate();
   const [position, setPosition] = useState({ latitude: null, longitude: null });
   const [error, setError] = useState(null);
   const watchIdRef = useRef(null);
+  const { user, loading } = useAuth(); // user and loading state
+  const AxiosSecure = useAxiosSecure();
 
   useEffect(() => {
+    // Wait until user is fully loaded
+    if (loading || !user?.email) return;
+
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser.");
       return;
     }
 
-    // Start watching the user's location
+    socket.emit("join-driver-room", user.email);
+
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setPosition({ latitude, longitude });
         setError(null);
+
+        socket.emit("location-update", {
+          driverEmail: user.email,
+          latitude,
+          longitude,
+        });
       },
       (err) => {
         setError(err.message);
@@ -42,25 +59,36 @@ const MapContainer = () => {
       }
     );
 
-    // Cleanup: Stop watching when the component is unmounted
+    // Cleanup: Stop watching when the component unmounts
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, []);
-
-  useEffect(() => {
-    console.log(position);
-  }, [position]);
+  }, [user, loading]); // Re-run only when user or loading changes
 
   const handleStop = () => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-    navigate("/driver");
+
+    if (user?.email) {
+      const stopValue = {
+        status: "stop",
+        email: user.email,
+      };
+
+      AxiosSecure.patch("/driverstop", stopValue).then((res) => {
+        console.log(res.data);
+        navigate("/driver");
+      });
+    }
   };
+
+  if (loading) {
+    return <div>Loading user data...</div>;
+  }
 
   return (
     <div>

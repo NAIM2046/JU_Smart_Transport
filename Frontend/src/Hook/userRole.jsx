@@ -15,7 +15,7 @@ const userRole = () => {
         return null;
       }
       try {
-        const res = await axiosSecure.get(`/user/${user.email}`);
+        const res = await axiosSecure.get(`/reg_user/${user.email}`);
         console.log(res.data);
         return res.data?.role ?? null; // Return role or null if undefined
       } catch (error) {

@@ -10,7 +10,7 @@ const Login = () => {
     const form = event.target;
     const email = form.email.value;
     const password = form.password.value;
-    console.log(name, email, password);
+    console.log(email, password);
     const result = await signIn(email, password);
     console.log(result.user);
     if (result.user) {
@@ -64,7 +64,7 @@ const Login = () => {
               </div>
             </form>
             <p className="my-4 text-center">
-              New to ToLetHub{" "}
+              New to JuSmartTranSport{" "}
               <Link className="text-orange-600 font-bold" to="/signup">
                 Sign Up
               </Link>{" "}

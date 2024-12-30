@@ -1,21 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
+import useAuth from "../../Hook/useAuth";
 
 const Driver = () => {
   const [busNumber, setBusNumber] = useState("");
   const [routeName, setRouteName] = useState("");
-  const navigate = useNavigate();
+  const [busType, setBusType] = useState("");
+  const [routes, setRoutes] = useState([]);
 
+  const navigate = useNavigate();
+  const AxiosSecure = useAxiosSecure();
+  const { user } = useAuth();
+  useEffect(() => {
+    AxiosSecure.get("/routes")
+      .then((res) => {
+        console.log(res.data);
+        setRoutes(res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching routes:", err);
+      });
+  }, []);
+  console.log(routes);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const datail = {
         busNumber,
         routeName,
+        busType,
+        status: "runing",
+        email: user.email,
       };
       console.log(datail);
-      navigate("/mapcontiner");
+      AxiosSecure.patch("/driverupdate", datail).then((res) => {
+        console.log(res.data);
+        navigate("/mapcontiner");
+      });
     } catch (error) {
       console.error("Error fetching bus route:", error);
     }
@@ -57,9 +80,37 @@ const Driver = () => {
                 <option value="" disabled>
                   Select a route
                 </option>
-                <option value="Route 1">Route 1</option>
-                <option value="Route 2">Route 2</option>
-                <option value="Route 3">Route 3</option>
+                {routes.length > 0 ? (
+                  routes.map((route) => (
+                    <option key={route._id} value={route.routeName}>
+                      {route.routeName}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>
+                    No routes available
+                  </option>
+                )}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="routeName" className="block font-medium">
+                Bus Type Student/Stap/Teacher
+              </label>
+              <select
+                id="routeName"
+                value={busType}
+                onChange={(e) => setBusType(e.target.value)}
+                className="border border-gray-300 p-2 w-full"
+                required
+              >
+                <option value="" disabled>
+                  Selected bus Type
+                </option>
+                <option value="Student">Student</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Stap">Stap</option>
               </select>
             </div>
             <button

@@ -10,6 +10,7 @@ const SignUp = () => {
   const navigate = useNavigate();
   const [photo, setphoto] = useState(null);
   const [username, setUsername] = useState("");
+  const [ID, setID] = useState("");
   const AxiosPublic = useAxiosPublic();
 
   const handleChangePhoto = (e) => {
@@ -21,6 +22,9 @@ const SignUp = () => {
   const handleChangeUserName = (e) => {
     setUsername(e.target.value);
   };
+  const handleChangeID = (e) => {
+    setID(e.target.value);
+  };
 
   // console.log(username);
   const { user, loading, createUser, signIn, LogOut } = useAuth();
@@ -29,26 +33,42 @@ const SignUp = () => {
     const form = event.target;
     const email = form.email.value;
     const password = form.password.value;
-
-    const result = await createUser(email, password);
-    console.log(result.user);
-    if (result.user) {
-      const userInfo = {
-        name: username,
-        email: email,
-        role: "driver",
-      };
-      AxiosPublic.post("/users", userInfo)
-        .then((res) => {
-          console.log(res.data);
-          if (res.data.insertedId) {
-            alert("user inserted database");
-          }
-        })
-        .catch((error) => {
-          console.log(error.message);
-        });
-    }
+    const id = form.id.value;
+    const username = form.username.value;
+    const user = {
+      email,
+      password,
+      id,
+      username,
+    };
+    console.log(user);
+    AxiosPublic.get(`/adminusercheck/${user.id}`).then((res) => {
+      console.log(res.data);
+      if (res.data.user === "true") {
+        const user = {
+          email,
+          password,
+          id,
+          username,
+          role: res.data.existingUser.role,
+          dept: res.data.existingUser.deptName,
+          batch: res.data.existingUser.batch,
+        };
+        AxiosPublic.post("/reg_user", user)
+          .then((result) => {
+            console.log(result.data);
+            createUser(user.email, user.password).then((resu) => {
+              console.log(user);
+              navigate("/");
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else {
+        console.log("you are not alowy");
+      }
+    });
   };
 
   return (
@@ -70,6 +90,18 @@ const SignUp = () => {
                   name="username"
                   placeholder="User name"
                   onChange={handleChangeUserName}
+                  className="input input-bordered"
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Reg ID</span>
+                </label>
+                <input
+                  type="text"
+                  name="id"
+                  placeholder="Reg ID"
+                  onChange={handleChangeID}
                   className="input input-bordered"
                 />
               </div>
