@@ -1,76 +1,91 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
+import Navbar from "../../components/Navbar/Navbar";
 
 const NoticePage = () => {
-  // Sample Notices Data with PDF URLs
-  const notices = [
-    {
-      id: 1,
-      title: "2024-25 Academic Circular",
-      description: "Important update regarding exams and academic schedule.",
-      date: "Sep 26, 2024",
-      color: "blue",
-      pdf: "https://example.com/academic-circular.pdf", // Replace with actual PDF URL
-    },
-    {
-      id: 2,
-      title: "Hall Transfers for Students",
-      description: "Updated list of students approved for hall transfers.",
-      date: "Sep 22, 2024",
-      color: "green",
-      pdf: "https://example.com/hall-transfers.pdf", // Replace with actual PDF URL
-    },
-    {
-      id: 3,
-      title: "Emergency Student Aid",
-      description:
-        "Applications open for medical assistance for injured students.",
-      date: "Sep 17, 2024",
-      color: "red",
-      pdf: "https://example.com/student-aid.pdf", // Replace with actual PDF URL
-    },
-  ];
+  const [notices, setNotices] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const AxioseSurce = useAxiosSecure();
+  const [viewAll, setViewAll] = useState(false);
 
-  // Handle notice click
-  const openPDF = (pdfUrl) => {
-    window.open(pdfUrl, "_blank"); // Open the PDF in a new tab
+  useEffect(() => {
+    AxioseSurce.get("/someNotices")
+      .then((res) => {
+        setNotices(res.data);
+      })
+      .catch((error) => console.error("Error fetching notices:", error));
+  }, []);
+
+  const fatchAllData = () => {
+    AxioseSurce.get("/notice")
+      .then((res) => {
+        setNotices(res.data);
+        setViewAll(true);
+      })
+      .catch((error) => console.error("Error fetching notices:", error));
   };
 
+  const filteredNotices = notices.filter((notice) =>
+    notice.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
       {/* Header */}
-      <header className="bg-blue-600 text-white py-4 text-center">
-        <h1 className="text-2xl font-bold">Notice Board</h1>
+      <div className="mb-4">
+        <Navbar></Navbar>
+      </div>
+      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-6 text-center shadow-lg">
+        <h1 className="text-3xl font-bold">Notice Board</h1>
       </header>
 
+      {/* Search Bar */}
+      <div className="container mx-auto px-6 py-4">
+        <input
+          type="text"
+          placeholder="Search by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full md:w-1/2 p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+        />
+      </div>
+
       {/* Notices Section */}
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {notices.map((notice) => (
-            <div
-              key={notice.id}
-              className={`bg-white shadow-lg rounded-lg p-4 border-l-4 border-${notice.color}-500 cursor-pointer`}
-              onClick={() => openPDF(notice.pdf)}
-            >
-              <h2 className={`text-lg font-bold text-${notice.color}-700`}>
+      <div className="container mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredNotices.map((notice) => (
+            <div key={notice._id} className="bg-white rounded-xl pt-2 pb-2">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
                 {notice.title}
-              </h2>
-              <p className="text-sm text-gray-600 mt-2">{notice.description}</p>
-              <p className="text-xs text-gray-500 mt-2">Date: {notice.date}</p>
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {new Date(notice.uploadedAt).toLocaleString()}
+              </p>
+              {notice.filePath && (
+                <a
+                  href={`http://localhost:5000${notice.filePath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 font-medium underline hover:text-blue-800"
+                >
+                  View PDF
+                </a>
+              )}
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center mt-8">
-        <nav className="inline-flex">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-l">
-            1
-          </button>
-          <button className="px-4 py-2 bg-gray-200">2</button>
-          <button className="px-4 py-2 bg-gray-200">3</button>
-          <button className="px-4 py-2 bg-gray-200 rounded-r">Next</button>
-        </nav>
+        {/* View All Button */}
+        {!viewAll && (
+          <div className="text-center mt-6">
+            <button
+              onClick={fatchAllData}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-md hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+            >
+              View All Notices
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

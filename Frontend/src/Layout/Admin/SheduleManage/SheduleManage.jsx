@@ -26,8 +26,9 @@ const ScheduleManage = () => {
   const [id, setId] = useState(null);
   const [routeName, setRouteName] = useState("");
   const [time, setTime] = useState("");
-  const [busType, setBusType] = useState("student");
+  const [busType, setBusType] = useState("Student");
   const [dayType, setDayType] = useState("Normal Day");
+  const [Numberofbus, setNumberofbus] = useState(1);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -41,18 +42,21 @@ const ScheduleManage = () => {
         time,
         busType,
         dayType,
+        Numberofbus,
       };
       console.log(routeDetails);
-      AxiosSecure.patch("/shedules", routeDetails).then((res) => {
+      AxiosSecure.patch(`/shedules`, routeDetails).then((res) => {
         console.log(res.data);
+        if (res.data.modifiedCount > 0) {
+          setSchedules(
+            schedules.map((schedule) =>
+              schedule._id === id ? { ...schedule, ...routeDetails } : schedule
+            )
+          );
+          alert("Schedule updated successfully");
+        }
       });
-      setSchedules(
-        schedules.map((schedule) =>
-          schedule._id === id
-            ? { id, routeName, time, busType, dayType }
-            : schedule
-        )
-      );
+
       setIsEditing(false);
     } else {
       const routeDetails = {
@@ -60,6 +64,7 @@ const ScheduleManage = () => {
         time,
         busType,
         dayType,
+        Numberofbus,
       };
       console.log(routeDetails);
       AxiosSecure.post("/shedules", routeDetails).then((res) => {
@@ -68,7 +73,14 @@ const ScheduleManage = () => {
           alert("shedules add successfully");
           setSchedules([
             ...schedules,
-            { _id: res.data.insertedId, routeName, time, busType, dayType },
+            {
+              _id: res.data.insertedId,
+              routeName,
+              time,
+              busType,
+              dayType,
+              Numberofbus,
+            },
           ]);
         }
       });
@@ -83,8 +95,9 @@ const ScheduleManage = () => {
     setId(null);
     setRouteName("");
     setTime("");
-    setBusType("student");
+    setBusType("Student");
     setDayType("Normal Day");
+    setNumberofbus(1);
   };
 
   // Edit schedule
@@ -95,6 +108,7 @@ const ScheduleManage = () => {
     setTime(scheduleToEdit.time);
     setBusType(scheduleToEdit.busType);
     setDayType(scheduleToEdit.dayType);
+    setNumberofbus(scheduleToEdit.Numberofbus);
     setIsEditing(true);
   };
 
@@ -134,11 +148,12 @@ const ScheduleManage = () => {
                 </option>
               ))}
             </select>
+
             <input
               type="text"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              placeholder="Time (e.g., 08:00 AM - 09:00 AM)"
+              placeholder="Time (e.g.,09:00 AM)"
               className="p-2 border rounded w-full"
               required
             />
@@ -159,6 +174,15 @@ const ScheduleManage = () => {
               <option value="Normal Day">Normal Day</option>
               <option value="Holiday">Holiday</option>
             </select>
+            <label>Number of Bus : </label>
+            <input
+              type="number"
+              value={Numberofbus}
+              onChange={(e) => setNumberofbus(e.target.value)}
+              placeholder="Enter the bus number..."
+              className="p-2 border rounded w-full"
+              required
+            />
           </div>
           <button
             type="submit"

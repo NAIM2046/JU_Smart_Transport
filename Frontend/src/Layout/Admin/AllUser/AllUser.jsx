@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAxiosSecure from "../../../Hook/useAxiosSecure";
 
 const AllUsers = () => {
   const navigate = useNavigate();
-  const [users] = useState([
-    { id: "1", name: "John Doe", email: "john@example.com", role: "Student" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com", role: "Driver" },
-    { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "Student" },
-    { id: "4", name: "Alice Brown", email: "alice@example.com", role: "Admin" },
-  ]); // Mock data
+  const [users, setUsers] = useState([]); // Mock data
   const [currentPage, setCurrentPage] = useState(1);
+  const AxiosSecure = useAxiosSecure();
+  useEffect(() => {
+    AxiosSecure.get("/reg_users").then((res) => {
+      console.log(res.data);
+      setUsers(res.data);
+    });
+  }, []);
   const totalPages = 5;
 
   const handlePageChange = (page) => {
@@ -40,16 +43,16 @@ const AllUsers = () => {
           <tbody>
             {users.map((user, index) => (
               <tr
-                key={user.id}
+                key={user._id}
                 className="hover:bg-blue-100 transition-colors cursor-pointer"
               >
                 <td className="py-2 px-4 border">{index + 1}</td>
-                <td className="py-2 px-4 border">{user.name}</td>
+                <td className="py-2 px-4 border">{user.username}</td>
                 <td className="py-2 px-4 border">{user.email}</td>
                 <td className="py-2 px-4 border">{user.role}</td>
                 <td className="py-2 px-4 border">
                   <button
-                    onClick={() => viewDetails(user.id)}
+                    onClick={() => viewDetails(user._id)}
                     className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
                   >
                     View Details

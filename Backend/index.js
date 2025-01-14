@@ -1,5 +1,8 @@
 const express = require('express') 
 const app = express() ; 
+const multer = require('multer') ;
+const path = require('path') ;
+const fs =  require('fs') ;
 const cors = require('cors') ;
 const jwt = require('jsonwebtoken') ;
 const http =  require('http') ;
@@ -37,7 +40,7 @@ app.get('/', (req, res) => {
     })
    })
   
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId , GridFSBucket } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9st7i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -48,7 +51,31 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+ const storage = multer.diskStorage({
+  destination: (req , file , cb) =>{
+    const uploadPath = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath); // Create directory if it doesn't exist
+    }
+    cb(null, uploadPath);
+  } ,
+  filename : (req ,  file ,cb) =>{
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+ })  ;
 
+ const upload =  multer({
+  storage , 
+  fileFilter: (req , file , cb) =>{
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed!'), false);
+    }
+    cb(null , true) ;
+  } , 
+  limits: {fileSize: 5*1024 *1024},
+ }) ;
+ 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -59,6 +86,8 @@ async function run() {
     const DriverCollection =  client.db("JuSmart").collection("reg_drivers") ;
     const RouteCollection =  client.db("JuSmart").collection("routes") ;
     const SheduleCollection =  client.db("JuSmart").collection("shedules") ;
+    const NoticeCollection =  client.db("JuSmart").collection("notices") ;
+
      //jwt webtoken 
        app.post('/jwt' , async(req , res) =>{
         const user = req.body ;
@@ -88,7 +117,7 @@ async function run() {
 
 
 
-    //user api 
+    //user post api 
     app.post("/reg_user" , async(req , res) =>{
       const user = req.body ; 
       //console.log(user) ;
@@ -107,6 +136,39 @@ async function run() {
         res.send(result) ;
       }
      
+    })
+    // find all users api 
+    app.get("/reg_users" , async (req , res)=>{
+      const usersStudent =  await Reg_userCollection.find().toArray() ;
+      const usersDriver  = await DriverCollection.find().toArray() ;
+      const users =  [...usersStudent , ...usersDriver] ;
+      res.send(users) ;
+    })
+    // find all student api 
+    app.get("/students" , async (req , res)=>{
+      const result = await Reg_userCollection.find().toArray() ;
+      res.send(result) ;
+    })
+    // find all driver api 
+    app.get("/driver" , async(req , res)=>{
+      const result =  await DriverCollection.find().toArray() ;
+      res.send(result)  ;
+
+    })
+    // delete student api 
+    app.delete('/student/:id' , async(req , res)=>{
+      const {id} = req.params ;
+      const query =  { _id : new ObjectId(id)} ;
+      const result = await Reg_userCollection.deleteOne(query) ;
+      res.send(result) ;
+
+    })
+    // delete driver api 
+    app.delete("/driver/:id" , async(req , res)=>{
+      const {id} =  req.params ;
+      const query =  {_id: new ObjectId(id)} ; 
+      const result = await DriverCollection.deleteOne(query);
+       res.send(result) ;
     })
     // driver update api 
     app.patch('/driverupdate' , async(req , res) =>{
@@ -144,7 +206,7 @@ async function run() {
       res.send(result) ;
     })
 
-// user get api
+//  single user get api 
     app.get("/reg_user/:email" , verifyToken, async(req , res)=>{
       const email = req.params.email ;
       //console.log(req.params) ;
@@ -246,7 +308,9 @@ async function run() {
   //shedules updated 
   app.patch("/shedules" , async(req, res) =>{
     const data = req.body ; 
-    const query = {_id: new ObjectId(data._id)} ;
+     const id =  data._id ;
+     console.log(id) ;
+    const query = {_id: new ObjectId(id)} ;
     const updateDoc = {
       $set:{
         routeName: data.routeName,
@@ -258,7 +322,97 @@ async function run() {
     const result =  await SheduleCollection.updateOne(query , updateDoc) ;
     res.send(result) ;
   })
+  // pdf file upload api 
+  app.post("/upload_pdf" , upload.single('pdf') , async(req , res) =>{
+    try {
+      if (!req.file) {
+        return res.status(400).send({ message: 'No file uploaded' });
+      }
+      const filePath = `/uploads/${req.file.filename}`;
+       const{ title} = req.body ;
+       const notice = {
+        title , 
+        filePath , 
+        uploadedAt: new Date() 
+       }
+       const result =  await NoticeCollection.insertOne(notice) ; 
+      
+      res.status(200).send({ message: 'File uploaded successfully', result });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).send({ message: 'Internal server error' });
+    }
+  })
+  // get all notice  api
+  app.get("/notice" , async(req , res) =>{
+    try {
+      const notices = await NoticeCollection.find().sort({uploadedAt:-1}).toArray();
+      res.status(200).send(notices);
+    } catch (error) {
+      console.error('Error fetching notices:', error);
+      res.status(500).send({ message: 'Internal server error' });
+    }
+  })
+  // get only 10 notice api 
+  app.get("/someNotices" , async(req , res)=>{
+    const notices =  await NoticeCollection.find().sort({uploadedAt:-1}).limit(1).toArray() ;
+    res.send(notices) ;
+  })
 
+  // delete notice api 
+  app.delete('/notices/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      // Find the notice to delete
+      const notice = await NoticeCollection.findOne({ _id: new ObjectId(id) });
+  
+      if (!notice) {
+        return res.status(404).send({ message: "Notice not found" });
+      }
+  
+      // Delete the notice document
+      await NoticeCollection.deleteOne({ _id: new ObjectId(id) });
+  
+      // Delete the PDF file from the server
+      const filePath = path.join(__dirname, notice.filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // Remove the file
+      }
+  
+      res.status(200).send({ message: "Notice deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting notice:", error);
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
+  
+
+
+
+   //  download a specific notice
+   app.get('/notices/download/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const notice = await NoticeCollection.findOne({ _id: new ObjectId(id) });
+
+      if (!notice) {
+        return res.status(404).send({ message: 'Notice not found' });
+      }
+
+      const filePath = path.join(__dirname, notice.filePath);
+      res.download(filePath, (err) => {
+        if (err) {
+          console.error('Error downloading file:', err);
+          res.status(500).send({ message: 'Error downloading file' });
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching notice:', error);
+      res.status(500).send({ message: 'Internal server error' });
+    }
+  });
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {

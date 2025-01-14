@@ -1,19 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const UserDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  // console.log(id);
   // Mock user details
-  const user = {
-    id,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "Student",
-    phone: "123-456-7890",
-    address: "123 Main St, Cityville",
-  };
+  const [user, setUser] = useState({
+    username: "",
+    email: "",
+    id: "",
+    role: "",
+    phoneNumber: "",
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-200 p-6">
@@ -24,7 +23,7 @@ const UserDetails = () => {
         <div className="space-y-4">
           <div className="flex items-center">
             <span className="w-24 font-semibold text-gray-600">Name:</span>
-            <span className="text-gray-800">{user.name}</span>
+            <span className="text-gray-800">{user.username}</span>
           </div>
           <div className="flex items-center">
             <span className="w-24 font-semibold text-gray-600">Email:</span>
