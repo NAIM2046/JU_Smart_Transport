@@ -26,7 +26,7 @@ const BusSchedule = () => {
         </h1>
         {/* Filter Buttons */}
         <div className="flex justify-center space-x-4 mb-6">
-          {["Student", "Teacher", "Stap"].map((type) => (
+          {["Student", "Teacher", "Staff"].map((type) => (
             <button
               key={type}
               className={`px-4 py-2 rounded-lg font-medium ${

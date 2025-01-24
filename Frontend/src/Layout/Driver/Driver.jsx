@@ -96,7 +96,7 @@ const Driver = () => {
 
             <div>
               <label htmlFor="routeName" className="block font-medium">
-                Bus Type Student/Stap/Teacher
+                Bus Type Student/Staff/Teacher
               </label>
               <select
                 id="routeName"
@@ -110,7 +110,7 @@ const Driver = () => {
                 </option>
                 <option value="Student">Student</option>
                 <option value="Teacher">Teacher</option>
-                <option value="Stap">Stap</option>
+                <option value="Staff">Staff</option>
               </select>
             </div>
             <button

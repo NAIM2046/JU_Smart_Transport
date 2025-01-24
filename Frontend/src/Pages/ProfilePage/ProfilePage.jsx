@@ -1,6 +1,46 @@
 import React from "react";
+import userRole from "../../Hook/userRole";
 
 const ProfilePage = () => {
+  const [Role, isRole] = userRole(); // Fetch user role
+  console.log(Role);
+
+  // Define profile details for each role
+  const profileDetails = {
+    student: {
+      name: "John Doe",
+      email: "john.doe@student.edu",
+      batch: "2021-2025",
+      department: "Computer Science",
+      phone: "+123 456 7890",
+      address: "123, Main Street, City",
+      hall: "Golden Hall",
+    },
+    admin: {
+      name: "Admin User",
+      email: "admin@system.com",
+      phone: "+987 654 3210",
+      address: "Admin Office, HQ",
+    },
+    teacher: {
+      name: "Prof. Smith",
+      email: "smith@university.edu",
+      department: "Computer Science",
+      phone: "+112 233 4455",
+      address: "45, Teacher's Residence, City",
+    },
+    driver: {
+      name: "Driver Mike",
+      email: "mike.driver@transport.com",
+      phone: "+444 555 6667",
+      vehicle: "Bus #12",
+      route: "City Center to University",
+    },
+  };
+
+  // Select details based on the role
+  const details = profileDetails[Role] || {};
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-2xl">
@@ -17,33 +57,62 @@ const ProfilePage = () => {
 
           {/* Profile Details */}
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-gray-800">John Doe</h2>
-            <p className="text-gray-600 mt-2">john.doe@example.com</p>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {details.name || "Guest"}
+            </h2>
+            <p className="text-gray-600 mt-2">
+              {details.email || "No email provided"}
+            </p>
           </div>
         </div>
 
         {/* Additional Information */}
         <div className="mt-6 space-y-4">
-          <div className="flex justify-center">
-            <span className="font-medium text-gray-700">Batch:</span>
-            <span className="text-gray-600">2021-2025</span>
-          </div>
-          <div className="flex justify-center">
-            <span className="font-medium text-gray-700">Department:</span>
-            <span className="text-gray-600">Computer Science</span>
-          </div>
-          <div className="flex justify-center">
-            <span className="font-medium text-gray-700">Phone Number:</span>
-            <span className="text-gray-600">+123 456 7890</span>
-          </div>
-          <div className="flex justify-center">
-            <span className="font-medium text-gray-700">Address: </span>
-            <span className="text-gray-600">123, Main Street, City</span>
-          </div>
-          <div className="flex justify-center">
-            <span className="font-medium text-gray-700">Hall Name:</span>
-            <span className="text-gray-600">Golden Hall</span>
-          </div>
+          {Role === "student" && (
+            <>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Batch:</span>
+                <span className="text-gray-600">{details.batch}</span>
+              </div>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Department:</span>
+                <span className="text-gray-600">{details.department}</span>
+              </div>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Hall Name:</span>
+                <span className="text-gray-600">{details.hall}</span>
+              </div>
+            </>
+          )}
+
+          {(Role === "student" ||
+            Role === "teacher" ||
+            Role === "driver" ||
+            Role === "admin") && (
+            <>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Phone Number:</span>
+                <span className="text-gray-600">{details.phone}</span>
+              </div>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Address:</span>
+                <span className="text-gray-600">{details.address}</span>
+              </div>
+            </>
+          )}
+
+          {Role === "driver" && (
+            <>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Vehicle:</span>
+                <span className="text-gray-600">{details.vehicle}</span>
+              </div>
+              <div className="flex justify-center">
+                <span className="font-medium text-gray-700">Route:</span>
+                <span className="text-gray-600">{details.route}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Change Profile Button */}
