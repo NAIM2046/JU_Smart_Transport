@@ -164,7 +164,7 @@ const ScheduleManage = () => {
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
-              <option value="Stap">Staff</option>
+              <option value="Staff">Staff</option>
             </select>
             <select
               value={dayType}

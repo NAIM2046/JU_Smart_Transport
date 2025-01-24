@@ -1,125 +1,101 @@
-import React from "react";
-import userRole from "../../Hook/userRole";
+import React, { useEffect, useState } from "react";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
+import useAuth from "../../Hook/useAuth";
+import Navbar from "../../components/Navbar/Navbar";
 
 const ProfilePage = () => {
-  const [Role, isRole] = userRole(); // Fetch user role
-  console.log(Role);
+  const AxiosSecure = useAxiosSecure();
+  const [userProfile, setUserProfile] = useState(null);
+  const { user } = useAuth();
 
-  // Define profile details for each role
-  const profileDetails = {
-    student: {
-      name: "John Doe",
-      email: "john.doe@student.edu",
-      batch: "2021-2025",
-      department: "Computer Science",
-      phone: "+123 456 7890",
-      address: "123, Main Street, City",
-      hall: "Golden Hall",
-    },
-    admin: {
-      name: "Admin User",
-      email: "admin@system.com",
-      phone: "+987 654 3210",
-      address: "Admin Office, HQ",
-    },
-    teacher: {
-      name: "Prof. Smith",
-      email: "smith@university.edu",
-      department: "Computer Science",
-      phone: "+112 233 4455",
-      address: "45, Teacher's Residence, City",
-    },
-    driver: {
-      name: "Driver Mike",
-      email: "mike.driver@transport.com",
-      phone: "+444 555 6667",
-      vehicle: "Bus #12",
-      route: "City Center to University",
-    },
+  // Fetch user profile data
+  const fetchData = async () => {
+    try {
+      const res = await AxiosSecure.get(`/reg_user/${user.email}`);
+      setUserProfile(res.data);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
   };
 
-  // Select details based on the role
-  const details = profileDetails[Role] || {};
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Loading state
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+        <div className="text-gray-600 text-lg">Loading profile...</div>
+      </div>
+    );
+  }
+
+  // Custom details for each role
+  const renderRoleSpecificDetails = () => {
+    switch (userProfile.role) {
+      case "student":
+        return (
+          <div className="mt-4 text-gray-700">
+            <p>Student ID: {userProfile.id || "N/A"}</p>
+            <p>Department: {userProfile.dept || "N/A"}</p>
+            <p>Batch: {userProfile.batch || "N/A"}</p>
+          </div>
+        );
+      case "driver":
+        return (
+          <div className="mt-4 text-gray-700">
+            <p>Driver ID: {userProfile.id || "N/A"}</p>
+            <p>License Number: {userProfile.license || "N/A"}</p>
+            <p>Assigned Route: {userProfile.route || "N/A"}</p>
+          </div>
+        );
+      case "admin":
+        return (
+          <div className="mt-4 text-gray-700">
+            <p>Admin ID: {userProfile.id || "N/A"}</p>
+            <p>Privileges: {userProfile.privileges || "Full Access"}</p>
+          </div>
+        );
+      default:
+        return (
+          <p className="text-gray-700">No additional details available.</p>
+        );
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-2xl">
-        {/* Profile Section */}
-        <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-6">
-          {/* Profile Photo */}
-          <div>
-            <img
-              src="https://via.placeholder.com/150"
-              alt="Profile"
-              className="w-32 h-32 rounded-full border-4 border-blue-500"
-            />
+    <div className="min-h-screen bg-gray-100">
+      {/* Navbar */}
+      <Navbar />
+      <div className="flex justify-center items-center py-10 px-4">
+        <div className="bg-white shadow-lg rounded-lg max-w-4xl w-full p-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start">
+            {/* Profile Picture */}
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-blue-500 bg-gray-200 flex justify-center items-center">
+              <span className="text-gray-500 text-4xl font-bold">
+                {userProfile.username?.charAt(0).toUpperCase() || "U"}
+              </span>
+            </div>
+            {/* Profile Details */}
+            <div className="md:ml-6 mt-6 md:mt-0 text-center md:text-left">
+              <h1 className="text-3xl font-bold text-gray-800">
+                {userProfile.username || "No Username"}
+              </h1>
+              <p className="text-gray-600 mt-1">{userProfile.email || "N/A"}</p>
+              <p className="text-blue-600 font-semibold capitalize mt-2">
+                Role: {userProfile.role || "N/A"}
+              </p>
+              {/* Role-Specific Details */}
+              {renderRoleSpecificDetails()}
+            </div>
           </div>
-
-          {/* Profile Details */}
-          <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-gray-800">
-              {details.name || "Guest"}
-            </h2>
-            <p className="text-gray-600 mt-2">
-              {details.email || "No email provided"}
-            </p>
+          {/* Footer Actions */}
+          <div className="mt-6 flex justify-center">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+              Edit Profile
+            </button>
           </div>
-        </div>
-
-        {/* Additional Information */}
-        <div className="mt-6 space-y-4">
-          {Role === "student" && (
-            <>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Batch:</span>
-                <span className="text-gray-600">{details.batch}</span>
-              </div>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Department:</span>
-                <span className="text-gray-600">{details.department}</span>
-              </div>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Hall Name:</span>
-                <span className="text-gray-600">{details.hall}</span>
-              </div>
-            </>
-          )}
-
-          {(Role === "student" ||
-            Role === "teacher" ||
-            Role === "driver" ||
-            Role === "admin") && (
-            <>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Phone Number:</span>
-                <span className="text-gray-600">{details.phone}</span>
-              </div>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Address:</span>
-                <span className="text-gray-600">{details.address}</span>
-              </div>
-            </>
-          )}
-
-          {Role === "driver" && (
-            <>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Vehicle:</span>
-                <span className="text-gray-600">{details.vehicle}</span>
-              </div>
-              <div className="flex justify-center">
-                <span className="font-medium text-gray-700">Route:</span>
-                <span className="text-gray-600">{details.route}</span>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Change Profile Button */}
-        <div className="mt-6 text-center">
-          <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300">
-            Change Profile
-          </button>
         </div>
       </div>
     </div>
