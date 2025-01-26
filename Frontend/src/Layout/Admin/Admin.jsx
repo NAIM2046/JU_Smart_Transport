@@ -95,6 +95,12 @@ const Admin = () => {
                     Schedule Management
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink to="/admin/activebus">
+                    <GiInterstellarPath />
+                    Today Active Bus
+                  </NavLink>
+                </li>
               </>
             }
             {/* shared nav links */}

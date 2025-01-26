@@ -32,6 +32,7 @@ import AddTeacher from "../Layout/Admin/AddAll/AddTeacher";
 import AddDriver from "../Layout/Admin/AddAll/AddDriver";
 import AddBus from "../Layout/Admin/AddAll/AddBus";
 import AddRoute from "../Layout/Admin/AddAll/AddRoute";
+import TodayActiveBus from "../Layout/Admin/TodayActiveBus/TodayActiveBus";
 
 const router = createBrowserRouter([
   {
@@ -180,6 +181,10 @@ const router = createBrowserRouter([
       {
         path: "schedule",
         element: <ScheduleManage></ScheduleManage>,
+      },
+      {
+        path: "activebus",
+        element: <TodayActiveBus></TodayActiveBus>,
       },
     ],
   },

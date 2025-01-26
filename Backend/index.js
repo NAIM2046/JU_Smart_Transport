@@ -87,6 +87,7 @@ async function run() {
     const RouteCollection =  client.db("JuSmart").collection("routes") ;
     const SheduleCollection =  client.db("JuSmart").collection("shedules") ;
     const NoticeCollection =  client.db("JuSmart").collection("notices") ;
+    const activeSheduleCollection =  client.db("JuSmart").collection("activebus") ;
 
      //jwt webtoken 
        app.post('/jwt' , async(req , res) =>{
@@ -115,8 +116,23 @@ async function run() {
         })
        }
 
-
-
+    // active bus list api 
+    app.post('/activebus' , async(req , res)=>{
+        const shedules =  req.body; 
+        const result =  await activeSheduleCollection.insertOne(shedules) ;
+        res.send(result) ;
+    })
+     app.get('/activebus' , async(req , res)=>{
+      const result =  await activeSheduleCollection.find().toArray() ;
+      res.send(result) ;
+     })
+     app.delete('/activebus/:id' , async(req , res)=>{
+         const {id} = req.params ;
+         const quary = { _id: new ObjectId(id)} ;
+         const result =  await activeSheduleCollection.deleteOne(quary) ;
+         res.send(result) ;
+     })
+     //end point of activebus api 
     //user post api 
     app.post("/reg_user" , async(req , res) =>{
       const user = req.body ; 

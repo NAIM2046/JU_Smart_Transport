@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
-import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
+import {
+  MapContainer as LeafletMap,
+  TileLayer,
+  Marker,
+  Circle,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useNavigate } from "react-router-dom";
@@ -16,56 +21,54 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const socket = io("http://localhost:5000");
-
 const MapContainer = () => {
   const navigate = useNavigate();
-  const [position, setPosition] = useState({ latitude: null, longitude: null });
+  const [position, setPosition] = useState(null);
   const [error, setError] = useState(null);
   const watchIdRef = useRef(null);
-  const { user, loading } = useAuth(); // user and loading state
+  const { user, loading } = useAuth();
   const AxiosSecure = useAxiosSecure();
 
   useEffect(() => {
-    // Wait until user is fully loaded
     if (loading || !user?.email) return;
 
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
-      return;
-    }
+    const socket = io("http://localhost:5000");
 
     socket.emit("join-driver-room", user.email);
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition({ latitude, longitude });
-        setError(null);
+        const { latitude, longitude, speed, accuracy } = pos.coords;
 
+        setPosition({
+          latitude,
+          longitude,
+          speed,
+          accuracy,
+        });
         socket.emit("location-update", {
           driverEmail: user.email,
           latitude,
           longitude,
+          speed,
+          accuracy,
         });
       },
       (err) => {
+        console.error("Geolocation error:", err);
         setError(err.message);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
     );
 
-    // Cleanup: Stop watching when the component unmounts
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
       }
+      socket.disconnect();
     };
-  }, [user, loading]); // Re-run only when user or loading changes
+  }, [user, loading]);
 
   const handleStop = () => {
     if (watchIdRef.current !== null) {
@@ -74,15 +77,12 @@ const MapContainer = () => {
     }
 
     if (user?.email) {
-      const stopValue = {
-        status: "stop",
-        email: user.email,
-      };
-
-      AxiosSecure.patch("/driverstop", stopValue).then((res) => {
-        console.log(res.data);
-        navigate("/driver");
-      });
+      AxiosSecure.patch("/driverstop", { status: "stop", email: user.email })
+        .then((res) => {
+          console.log(res.data);
+          navigate("/driver");
+        })
+        .catch((err) => console.error("Error stopping driver:", err));
     }
   };
 
@@ -98,24 +98,28 @@ const MapContainer = () => {
         </button>
       </div>
       <div className="p-4">
-        <h1 className="text-lg font-bold">Geolocation Watcher</h1>
+        <h1 className="text-lg font-bold">Geolocation Tracker</h1>
         {error ? (
           <p className="text-red-500">Error: {error}</p>
-        ) : position.latitude && position.longitude ? (
-          <p>
-            Current Position:
-            <br />
-            Latitude: {position.latitude.toFixed(6)}
-            <br />
-            Longitude: {position.longitude.toFixed(6)}
-          </p>
+        ) : position ? (
+          <div>
+            <p>Current Position:</p>
+            <p>Latitude: {position.latitude.toFixed(6)}</p>
+            <p>Longitude: {position.longitude.toFixed(6)}</p>
+            <p>Accuracy: {position.accuracy?.toFixed(2)} meters</p>
+            <p>
+              Speed:{" "}
+              {position.speed
+                ? `${(position.speed * 3.6).toFixed(2)} km/h`
+                : "Unavailable"}
+            </p>
+          </div>
         ) : (
           <p>Fetching location...</p>
         )}
       </div>
       <div className="mt-4">
-        {/* Leaflet Map */}
-        {position.latitude && position.longitude ? (
+        {position ? (
           <LeafletMap
             center={[position.latitude, position.longitude]}
             zoom={15}
@@ -126,6 +130,14 @@ const MapContainer = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <Marker position={[position.latitude, position.longitude]} />
+            {/* {position.accuracy && (
+              <Circle
+                center={[position.latitude, position.longitude]}
+                radius={position.accuracy} // Show accuracy radius
+                color="blue"
+                fillOpacity={0.2}
+              />
+            )} */}
           </LeafletMap>
         ) : (
           <p>Loading map...</p>

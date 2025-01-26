@@ -9,10 +9,20 @@ const Driver = () => {
   const [routeName, setRouteName] = useState("");
   const [busType, setBusType] = useState("");
   const [routes, setRoutes] = useState([]);
-
+  const [schedule, setSchedule] = useState([]);
   const navigate = useNavigate();
   const AxiosSecure = useAxiosSecure();
   const { user } = useAuth();
+  const fetchData = () => {
+    AxiosSecure.get("/activebus").then((res) => {
+      console.log(res.data);
+      const userSchedule = res.data.filter(
+        (schedule) => schedule.driverName === user.email
+      );
+      setSchedule(userSchedule);
+    });
+  };
+
   useEffect(() => {
     AxiosSecure.get("/routes")
       .then((res) => {
@@ -22,8 +32,30 @@ const Driver = () => {
       .catch((err) => {
         console.error("Error fetching routes:", err);
       });
+    fetchData();
   }, []);
   console.log(routes);
+  const handleStart = (item) => {
+    // setBusNumber(item.busNumber);
+    // setRoutes(item.routeName);
+    // setBusType(item.busType);
+    const datail = {
+      busNumber: item.busNumber,
+      routeName: item.routeName,
+      busType: item.busType,
+      status: "runing",
+      email: user.email,
+    };
+
+    AxiosSecure.patch("/driverupdate", datail)
+      .then((res) => {
+        console.log(res.data);
+        navigate("/mapcontiner");
+      })
+      .catch((error) => {
+        console.error("Error updating driver:", error);
+      });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -48,6 +80,30 @@ const Driver = () => {
     <div>
       <div>
         <Navbar></Navbar>
+      </div>
+      <div>
+        <div className="p-4">
+          <h2 className="text-lg font-bold">Your Active Schedule</h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            {schedule.map((item) => (
+              <div
+                key={item._id}
+                className="border border-gray-300 p-4 rounded-lg shadow-md"
+              >
+                <h3 className="font-semibold">Bus Number: {item.busNumber}</h3>
+                <p>Route Name: {item.routeName}</p>
+                <p>Bus Type: {item.busType}</p>
+                <p>Time: {item.time}</p>
+                <button
+                  onClick={() => handleStart(item)}
+                  className="bg-green-500 text-white mt-2 py-1 px-3 rounded"
+                >
+                  Start
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       <div>
         <div className="p-4">
@@ -117,7 +173,7 @@ const Driver = () => {
               type="submit"
               className="bg-blue-500 text-white py-2 px-4 rounded"
             >
-              Submit
+              Start
             </button>
           </form>
         </div>
